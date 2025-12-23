@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+  <div class="col-lg-6 mb-3">
+    <div class="payment-card p-4">
+      <p class="eyebrow text-light">Secure Checkout</p>
+      <h3 class="mb-3">Amount Payable: ₹ {{ subtotal }}</h3>
+      <form id="paymentForm" novalidate>
+        {% csrf_token %}
+        <div class="form-group">
+          <label>Cardholder Name</label>
+          <input type="text" class="form-control" id="cardName" placeholder="As on card">
+          <div class="invalid-feedback">Enter the name on card</div>
+        </div>
+        <div class="form-group">
+          <label>Card Number</label>
+          <input type="text" class="form-control" id="cardNumber" maxlength="19" placeholder="XXXX XXXX XXXX XXXX">
+          <div class="invalid-feedback">Enter a valid 16-digit card number</div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label>Expiry (MM/YY)</label>
+            <input type="text" class="form-control" id="cardExpiry" placeholder="08/28" maxlength="5">
+            <div class="invalid-feedback">Enter a valid expiry</div>
+          </div>
+          <div class="form-group col-md-6">
+            <label>CVV</label>
+            <input type="password" class="form-control" id="cardCvv" maxlength="3" placeholder="123">
+            <div class="invalid-feedback">3-digit CVV required</div>
+          </div>
+        </div>
+        <div class="form-group form-check">
+          <input type="checkbox" class="form-check-input" id="codOption">
+          <label class="form-check-label" for="codOption">Cash on Delivery (skip card)</label>
+        </div>
+        <div class="d-flex">
+          <button type="button" class="btn btn-gold mr-2" id="payNow">Pay Now</button>
+          <a class="btn btn-outline-light" href="{% url 'payment_failure' %}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white">
+        <strong>Order Summary</strong>
+      </div>
+      <div class="card-body">
+        {% if items %}
+          <ul class="list-group mb-3">
+            {% for item in items %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>{{ item.product.title }} <small class="text-muted">(x{{ item.quantity }})</small></span>
+                <span>₹ {{ item.line_total }}</span>
+              </li>
+            {% endfor %}
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>Total</strong><strong>₹ {{ subtotal }}</strong>
+            </li>
+          </ul>
+        {% elif booking %}
+          <p class="mb-1">Portrait Booking</p>
+          <p class="mb-1"><strong>{{ booking.name }}</strong> — ₹ {{ booking.price }}</p>
+        {% endif %}
+        <p class="text-muted small mb-0">This is a dummy payment page; no real charges will be made.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  const numberInput = document.getElementById('cardNumber');
+  const expiryInput = document.getElementById('cardExpiry');
+  const cvvInput = document.getElementById('cardCvv');
+  const nameInput = document.getElementById('cardName');
+  const codInput = document.getElementById('codOption');
+  const payNow = document.getElementById('payNow');
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  const csrftoken = getCookie('csrftoken');
+
+  function formatNumber(val) {
+    return val.replace(/\D/g, '').slice(0,16).replace(/(.{4})/g, '$1 ').trim();
+  }
+
+      function validate() {
+    let ok = true;
+    if (!codInput.checked) {
+      if (!nameInput.value.trim()) { nameInput.classList.add('is-invalid'); ok = false; } else { nameInput.classList.remove('is-invalid'); }
+      const digits = numberInput.value.replace(/\s/g, '');
+      if (digits.length !== 16) { numberInput.classList.add('is-invalid'); ok = false; } else { numberInput.classList.remove('is-invalid'); }
+      const exp = expiryInput.value.trim();
+      const expMatch = exp.match(/^(0[1-9]|1[0-2])\/\d{2}$/);
+      if (!expMatch) { expiryInput.classList.add('is-invalid'); ok = false; } else { expiryInput.classList.remove('is-invalid'); }
+      if (cvvInput.value.trim().length !== 3) { cvvInput.classList.add('is-invalid'); ok = false; } else { cvvInput.classList.remove('is-invalid'); }
+    } else {
+      [nameInput, numberInput, expiryInput, cvvInput].forEach(el => el.classList.remove('is-invalid'));
+    }
+    return ok;
+  }
+
+  numberInput.addEventListener('input', e => numberInput.value = formatNumber(numberInput.value));
+  expiryInput.addEventListener('input', e => {
+    let v = expiryInput.value.replace(/\D/g, '').slice(0,4);
+    if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
+    expiryInput.value = v;
+  });
+  cvvInput.addEventListener('input', e => cvvInput.value = cvvInput.value.replace(/\\D/g,'').slice(0,3));
+
+  payNow.addEventListener('click', () => {
+    if (!validate()) return;
+    if (codInput.checked) {
+      // Place COD order via POST, then redirect to dashboard
+      fetch("{% url 'payment_cod' %}", {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrftoken,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+      }).then(resp => resp.json()).then(data => {
+        if (data && data.redirect_url) {
+          window.location.href = data.redirect_url;
+        } else {
+          window.location.href = "{% url 'user_dashboard' %}";
+        }
+      }).catch(err => {
+        console.error(err);
+        window.location.href = "{% url 'payment_failure' %}";
+      });
+    } else {
+      // Simulate online payment (server will create paid order)
+      window.location.href = "{% url 'payment_success' %}";
+    }
+  });
+})();
+</script>
+{% endblock %}

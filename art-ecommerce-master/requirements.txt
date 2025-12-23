@@ -1,0 +1,6 @@
+Django>=5.0,<5.1
+djangorestframework>=3.16
+reportlab>=4.4
+Pillow>=10.0
+psycopg2-binary>=2.9
+dj-database-url>=0.5

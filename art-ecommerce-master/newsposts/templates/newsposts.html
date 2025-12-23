@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div id="news-sect" class="row news-header-row">
+    <div class="col-10 offset-1 text-center">
+        <h2 class="header-h3 uppercase news-h">news</h2>
+        <h3 class="sub-header">Read the latest news here!</h3>
+    </div>
+</div>
+
+{% for post in posts %}
+    <div class="row">
+        <div class="col-10 offset-1 col-md-8 offset-md-2 newspost-container">
+            <h4 class="article-h">{{ post.title }}</h4>
+            {% if post.image %}
+                <img class="newspost-image" src="{{ MEDIA_URL }}{{ post.image }}" alt="image">
+            {% endif %}
+            <p class="p-text prev-blog-text">{{ post.content|truncatewords:50 }}</p>
+            <span class="btn btn-primary openpost-btn">
+                <a href="{% url 'news_detail' post.id %}">Read Article</a>
+            </span>
+        </div>
+    </div>
+
+{% endfor %}
+<br>
+<br>
+
+{% endblock %}

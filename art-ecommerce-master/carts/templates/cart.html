@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 col-md-8 offset-md-2">
+        <h3 class="header-h3 index-news-h">Reivew Cart</h3>
+        <div class="table-container p-text table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <th scope="col">Item</th>
+                    <th scope="col">Size</th>
+                    <th scope="col">Price</th>
+                    <th scope="col">Quantity</th>
+                    <th></th>
+
+                </thead>
+                <tfoot>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td>Total: {{ cart.total }} €</td>
+                        <td></td>
+                        <td><a class="btn btn-danger" href="{% url 'clear_cart' %}">Clear Cart</a></td>
+                        
+                    </tr>
+
+                </tfoot>
+
+                {% for item in cart.cartitem_set.all %}
+                    <tr> <!-- First if statment checks if there is a variations to the item. if so, loop through it 
+                        and display it as the product. Else display the original painting  -->
+                        {% if item.print_variations.all|length == 1 %}
+                            {% for print in item.print_variations.all %}
+                                <td>{{ item.product.name }}</td>
+                                <td>{{ print.size }}</td>
+                                <td>{{ print.price }} €</td>
+                                <td>{{ item.quantity }}</td>
+                            {% endfor %}
+                        {% else %}
+                            <td>{{ item.product.name }}</td>
+                            <td>{{ item.product.original_painting.size }}</td>
+                            <td>{{ item.product.original_painting.price }} €</td>
+                            <td>{{ item.quantity }}</td>
+                        {% endif %}
+                        
+                        <td><a class="btn btn-outline-danger" href="{% url 'remove_from_cart' item.id %}">Remove</a></td>
+                    </tr>
+                {% endfor %}
+                </table>
+                <br>
+                <br>
+                <div class="col text-center">
+                    <a class="btn btn-success btn-lg" href="{% url 'checkout' %}#content">Proceed To Checkout</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+{% endblock %}

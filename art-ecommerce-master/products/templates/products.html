@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div id="painting-sect" class="container-fluid">
+    <div class="row news-header-row">
+        <div class="col-8 offset-2 p-text">
+            <h3 class="header-h3 text-center paintings-h">View Paintings By Collection</h3>
+            
+            <form method="GET" action="{% url 'get_products' %}#painting-sect">
+                <div class="row">
+                    {% for collection in collections %}
+                        <div class="col-12 col-md-4 custom-control custom-radio custom-control-inline coll-filter">
+                            <input class="custom-control-input" type="radio" id="{{ collection.id }}" name="coll_id" value="{{ collection.id }}">
+                            <label class="custom-control-label font-weight-bold" for="{{ collection.id }}">{{ collection.name }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="col text-center">
+                    <button type="submit" class="collection-btn btn btn-outline-success">Apply Filter</button>
+                    <a href="{% url 'get_products' %}#content" class="collection-btn btn btn-outline-danger">Remove Filter</a>
+                </div>
+                <br>
+            </form>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h5>Browse Categories</h5>
+                    {% for collection in collections %}
+                        <a class="btn btn-link" href="{% url 'category_view' collection.name|slugify %}">{{ collection.name }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% if coll_description == True %}
+<div class="container-fluid">
+<div class="row gradient-grey">
+    <div class="col-10 offset-1">
+        <h4 class="header-h4 collection-h">{{ collection.name }}</h4>
+        <p class="p-text">{{ collection.description }}</p>
+    </div>
+</div>
+</div>
+{% endif %}
+
+<div class="overflow-hidden">
+{% for product in products %}
+    {% if forloop.counter|divisibleby:2 %}
+    
+    <div class="row product-display-row">
+        <div class="col-12 col-md-3 d-block d-md-none from-left slide-in">
+            <a data-fancybox="gallery" href="{{ MEDIA_URL }}{{ product.image }}">
+                <img class="product-img img-shadow" src="{{ MEDIA_URL }}{{ product.image }}" alt="image">
+            </a>
+        </div>
+
+        <div class="col-12 col-md-7 shadow-left from-left slide-in">
+            <a href="{% url 'get_single_product' product.id %}#content">
+                <h4 class="header-h4 product-h">{{ product.name }}</h4>
+                <p class="p-text">{{ product.description|truncatewords:50 }}</p>
+            </a>
+            <div class="product-info">
+                {% if product.printpainting_set.all %}
+                    <span class="p-text font-italic">Availible as: </span>
+                    <span class="p-text font-weight-bold">Print</span>
+                {% else %}
+                    <p class="p-text font-weight-bold font-italic">Prints are out of stock!</p>
+                {% endif %}
+
+                {% if product.original_painting.stock == True %}
+                    <p class="p-text font-weight-bold">Original painting still availible!</p>
+                {% else %}
+                    <p class="p-text font-weight-bold">Original painting has been sold!</p>
+                {% endif %}
+                <!-- <p>Price varies between print sizes and original painting</p> -->
+                <span class="btn btn-success openproduct-btn"><a href="{% url 'get_single_product' product.id %}#content">View Product</a></span>
+            </div>
+        </div>
+        <div class="col-3 d-none d-md-block from-right slide-in">
+            <a data-fancybox="gallery" href="{{ MEDIA_URL }}{{ product.image }}">
+                <img class="product-img img-shadow" src="{{ MEDIA_URL }}{{ product.image }}" alt="image">
+            </a>
+        </div>
+    </div>
+    {% else %}
+
+    <div class="row product-display-row">
+        <div class="col-12 col-md-3 from-left slide-in">
+            <a data-fancybox="gallery" href="{{ MEDIA_URL }}{{ product.image }}">
+                <img class="product-img img-shadow" src="{{ MEDIA_URL }}{{ product.image }}" alt="image">
+            </a>
+        </div>
+        <div class="col-md-7 shadow-right from-right slide-in">
+            <a href="{% url 'get_single_product' product.id %}#content">
+                <h4 class="header-h4 product-h">{{ product.name }}</h4>
+                <p class="p-text">{{ product.description|truncatewords:50 }}</p>
+            </a>
+            <div class="product-info">
+                {% if product.printpainting_set.all %}
+                    <span class="p-text font-italic">Availible as: </span>
+                    <span class="p-text font-weight-bold">Print</span>
+                {% else %}
+                    <p class="p-text font-weight-bold font-italic">Prints are out of stock!</p>
+                {% endif %}
+                
+                {% if product.original_painting.stock == True %}
+                    <p class="p-text font-weight-bold">Original painting still availible!</p>
+                {% else %}
+                <p class="p-text font-weight-bold">Original painting has been sold!</p>
+                {% endif %}
+                <!-- <p>Price varies between print sizes and original painting</p> -->
+                <span class="btn btn-success openproduct-btn"><a href="{% url 'get_single_product' product.id %}#content">View Product</a></span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endfor %}
+</div>
+<br>
+<br>
+{% endblock %}
+

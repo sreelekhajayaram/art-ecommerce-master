@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div id="main-image" class="mb-3 text-center">
+            {% if product.images.first %}
+                <img id="slideshow-main" class="img-fluid rounded shadow-sm" src="{{ product.images.first.image.url }}" alt="{{ product.title }}" style="max-height:420px;object-fit:contain;" />
+            {% endif %}
+        </div>
+        <div class="d-flex flex-wrap">
+            {% for img in product.images.all %}
+                <img src="{{ img.image.url }}" class="img-thumbnail mr-2 mb-2 thumb-image" style="width:90px;height:90px;object-fit:cover;cursor:pointer;" data-full="{{ img.image.url }}" alt="{{ img.alt_text }}">
+            {% endfor %}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <h2>{{ product.title }}</h2>
+        <p class="text-muted">{{ product.category.get_name_display }}</p>
+        <p>{{ product.description }}</p>
+        <p class="h4 font-weight-bold">₹ {{ product.price }}</p>
+        <p class="text-muted">Stock: {{ product.stock }}</p>
+        <form method="post" action="{% url 'add_to_cart' product.id %}" class="form-inline">
+            {% csrf_token %}
+            <div class="input-group mb-3 mr-2">
+                <div class="input-group-prepend">
+                    <button class="btn btn-outline-secondary qty-minus" type="button">-</button>
+                </div>
+                <input type="number" name="quantity" class="form-control qty-input" value="1" min="1" max="{{ product.stock }}">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-secondary qty-plus" type="button">+</button>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary mr-2">Add to Cart</button>
+            <a href="{% url 'checkout' %}" class="btn btn-outline-success">Buy Now</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // automatic slideshow
+    (function(){
+        const imgs = Array.from(document.querySelectorAll('.thumb-image'));
+        if (!imgs.length) return;
+        let idx = 0;
+        const main = document.getElementById('slideshow-main');
+        function show(i){
+            const url = imgs[i].dataset.full;
+            if (main) main.src = url;
+        }
+        // rotate every 3.5s
+        setInterval(function(){
+            idx = (idx + 1) % imgs.length;
+            show(idx);
+        }, 3500);
+        // allow clicking thumbnails to jump
+        imgs.forEach((t, i) => t.addEventListener('click', ()=>{ idx = i; show(i); }))
+    })();
+    document.querySelectorAll('.qty-minus').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const input = btn.parentElement.parentElement.querySelector('.qty-input');
+            input.value = Math.max(1, parseInt(input.value || 1) - 1);
+        });
+    });
+    document.querySelectorAll('.qty-plus').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const input = btn.parentElement.parentElement.querySelector('.qty-input');
+            input.value = parseInt(input.value || 1) + 1;
+        });
+    });
+</script>
+<style>
+    #slideshow-main{ cursor:pointer; }
+</style>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

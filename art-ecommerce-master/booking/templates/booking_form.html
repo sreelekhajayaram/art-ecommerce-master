@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Black & White theme with cursive headings -->
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+<style>
+        body { background: #f7f7f7; }
+        .bw-card { background: #ffffff; border: 1px solid #e6e6e6; box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+        .bw-heading { font-family: 'Dancing Script', cursive; color: #111; font-size: 2.6rem; }
+        label { font-family: 'Montserrat', sans-serif; color: #222; font-weight: 600; }
+        .form-control, .form-select { border-radius: 6px; border: 1px solid #dcdcdc; }
+        .btn-bw { background: #000; color: #fff; border: none; }
+        .btn-bw-outline { background: transparent; color: #000; border: 2px solid #000; }
+        .form-note { color: #6b6b6b; font-size: 0.95rem; }
+        .price-display { font-weight: 700; font-size: 1.25rem; }
+</style>
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 bw-card p-4">
+            <div class="mb-3">
+                <h1 class="bw-heading mb-0">Portrait Booking</h1>
+                <p class="form-note">Fill the form to book a custom portrait. Select sizes (A3/A4/A5) and the category.</p>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" id="bookingForm">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.name.id_for_label }}">Full name</label>
+                        {{ form.name }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.email.id_for_label }}">Email</label>
+                        {{ form.email }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.phone.id_for_label }}">Phone</label>
+                        {{ form.phone }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.preferred_date.id_for_label }}">Preferred date</label>
+                        {{ form.preferred_date }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.address.id_for_label }}">Address</label>
+                    {{ form.address }}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="stateSelect">State</label>
+                        {{ form.state }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.city.id_for_label }}">City</label>
+                        {{ form.city }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.pincode.id_for_label }}">PIN code</label>
+                        {{ form.pincode }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="categorySelect">Category</label>
+                        {{ form.category }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="sizeSelect">Select Size</label>
+                        <div class="d-flex gap-2">
+                            {{ form.size }}
+                            <button type="button" class="btn btn-bw-outline" onclick="openSizeHelp()">Size reference</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label>Price</label>
+                    <div class="d-flex align-items-center gap-3">
+                        <input type="text" id="priceDisplay" class="form-control price-display" readonly value="₹ 0">
+                        {{ form.price }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.reference_image.id_for_label }}">Reference image</label>
+                    {{ form.reference_image }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.description.id_for_label }}">Description / instructions</label>
+                    {{ form.description }}
+                </div>
+
+                <button type="submit" class="btn btn-bw btn-lg w-100">Submit Booking</button>
+            </form>
+        </div>
+    </div>
+    <p class="text-center mt-3 form-note">Standard portrait sizes: A3 (297 × 420 mm), A4 (210 × 297 mm), A5 (148 × 210 mm).</p>
+</div>
+
+<!-- Size help modal -->
+<div class="modal fade" id="sizeHelpModal" tabindex="-1">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Standard Sizes & Portrait Guidance</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul>
+                    <li><strong>A3</strong> — 297 × 420 mm (ideal for detailed portraits)</li>
+                    <li><strong>A4</strong> — 210 × 297 mm (standard portrait size)</li>
+                    <li><strong>A5</strong> — 148 × 210 mm (small studies / gift-sized)</li>
+                </ul>
+                <p class="form-note">These are standard ISO sizes; for custom dimensions, mention them in the description.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Simple size→price map (you can update server-side prices later)
+const SIZE_PRICES = { A3: 5000, A4: 3000, A5: 1500 };
+
+function updatePriceClient() {
+    const sizeElem = document.getElementById('sizeSelect');
+    const selected = sizeElem ? sizeElem.value : null;
+    const price = selected && SIZE_PRICES[selected] ? SIZE_PRICES[selected] : 0;
+    document.getElementById('priceDisplay').value = `₹ ${price}`;
+    const hidden = document.getElementById('id_price') || document.querySelector('input[name="price"]');
+    if (hidden) hidden.value = price;
+}
+
+function openSizeHelp() {
+    new bootstrap.Modal(document.getElementById('sizeHelpModal')).show();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // wire events
+    const sizeElem = document.getElementById('sizeSelect');
+    if (sizeElem) sizeElem.addEventListener('change', updatePriceClient);
+    updatePriceClient();
+});
+</script>
+
+{% endblock %}

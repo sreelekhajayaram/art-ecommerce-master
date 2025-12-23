@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="admin-hero mb-4">
+  <div>
+    <p class="eyebrow">Admin / Product</p>
+    <h2 class="text-white mb-1">Edit Product</h2>
+    <p class="text-light mb-0">{{ product.title }}</p>
+  </div>
+  <div class="d-flex align-items-center">
+    <a href="{% url 'admin_catalog' %}" class="btn btn-outline-light">Back to Catalog</a>
+  </div>
+</div>
+
+<div class="card shadow-sm border-0">
+  <div class="card-body">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <div class="form-group">
+        <label for="id_images">Add Images</label>
+        <input type="file" name="images" id="id_images" multiple class="form-control-file">
+      </div>
+      <div class="mb-3">
+        <h6>Existing Images</h6>
+        <div class="d-flex flex-wrap">
+          {% for img in product.images.all %}
+            <div class="mr-2 mb-2 text-center">
+              <img src="{{ img.image.url }}" style="width:110px;height:110px;object-fit:cover;" class="img-thumbnail" alt="">
+              <form method="post" action="{% url 'delete_product_image' img.id %}">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-outline-danger btn-block mt-1" onclick="return confirm('Delete this image?')">Delete</button>
+              </form>
+            </div>
+          {% empty %}
+            <div class="text-muted">No images yet.</div>
+          {% endfor %}
+        </div>
+      </div>
+      <button class="btn btn-primary">Save Changes</button>
+      <a class="btn btn-link" href="{% url 'admin_catalog' %}">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}
+

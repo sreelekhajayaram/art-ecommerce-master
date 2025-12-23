@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="admin-hero mb-4">
+  <div>
+    <p class="eyebrow">Admin / Catalog</p>
+    <h2 class="text-white mb-1">Curate Categories & Products</h2>
+    <p class="text-light mb-0">Manage every artwork detail with elegance.</p>
+  </div>
+  <div class="d-flex align-items-center">
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-light mr-2">Back to Dashboard</a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-12 mb-3">
+    <div class="form-inline">
+      <label class="mr-3 font-weight-bold">Catalog Action:</label>
+      <div class="form-check mr-2">
+        <input class="form-check-input" type="radio" name="catalog-action" id="action-cat" value="category" checked>
+        <label class="form-check-label" for="action-cat">Add / Edit Category</label>
+      </div>
+      <div class="form-check mr-2">
+        <input class="form-check-input" type="radio" name="catalog-action" id="action-prod" value="product">
+        <label class="form-check-label" for="action-prod">Add / Edit Product</label>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5 mb-4 action-block" id="category-block">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-header bg-white">
+        <h5 class="mb-0">Add / Update Category</h5>
+      </div>
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data" class="mb-3">
+          {% csrf_token %}
+          {{ cat_form.as_p }}
+          <button class="btn btn-primary" name="cat-submit">Save Category</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-7 mb-4 action-block" id="product-list-block">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Categories</h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Preview</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Products</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for category in categories %}
+                <tr>
+                  <td style="width:80px;">
+                    {% if category.image %}
+                      <img src="{{ category.image.url }}" alt="{{ category.get_name_display }}" class="img-thumbnail" style="height:60px;object-fit:cover;">
+                    {% else %}
+                      <span class="text-muted small">No image</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ category.get_name_display }}</td>
+                  <td class="small text-muted">{{ category.description|default:"—" }}</td>
+                  <td>{{ category.products.count }}</td>
+                  <td class="text-right">
+                    <a href="{% url 'edit_category' category.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    <form action="{% url 'delete_category' category.id %}" method="post" class="d-inline">
+                      {% csrf_token %}
+                      <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this category?')">Delete</button>
+                    </form>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="4" class="text-center text-muted">No categories yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">Add Product</h5>
+  </div>
+  <div class="card-body">
+    <form method="post" enctype="multipart/form-data" id="product-form">
+      {% csrf_token %}
+      {{ prod_form.as_p }}
+      <div class="form-group">
+        <label for="id_images">Product Images</label>
+        <input type="file" name="images" id="id_images" multiple class="form-control-file">
+      </div>
+      <button class="btn btn-primary" name="prod-submit">Save Product</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  (function(){
+    const catRadio = document.getElementById('action-cat');
+    const prodRadio = document.getElementById('action-prod');
+    const categoryBlock = document.getElementById('category-block');
+    const productFormCard = document.getElementById('product-form').closest('.card');
+    const productListBlock = document.getElementById('product-list-block');
+
+    function showCategory(){
+      categoryBlock.style.display = '';
+      productFormCard.style.display = 'none';
+      productListBlock.style.display = '';
+    }
+    function showProduct(){
+      categoryBlock.style.display = 'none';
+      productFormCard.style.display = '';
+      productListBlock.style.display = 'none';
+    }
+
+    // initial state
+    showCategory();
+
+    catRadio.addEventListener('change', function(){ if(this.checked) showCategory(); });
+    prodRadio.addEventListener('change', function(){ if(this.checked) showProduct(); });
+  })();
+</script>
+
+<div class="card shadow-sm border-0">
+  <div class="card-header bg-white">
+    <h5 class="mb-0">All Products</h5>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for product in products %}
+            <tr>
+              <td>{{ product.title }}</td>
+              <td>{{ product.category.get_name_display }}</td>
+              <td>${{ product.price }}</td>
+              <td>{{ product.stock }}</td>
+              <td class="text-right">
+                <a class="btn btn-sm btn-outline-secondary" href="{% url 'edit_product' product.id %}">Edit</a>
+                <form action="{% url 'delete_product' product.id %}" method="post" class="d-inline">
+                  {% csrf_token %}
+                  <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this product?')">Delete</button>
+                </form>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5" class="text-center text-muted">No products yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

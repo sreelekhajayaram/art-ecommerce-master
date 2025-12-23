@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="admin-hero mb-4">
+  <div>
+    <p class="eyebrow">Admin / Category</p>
+    <h2 class="text-white mb-1">Edit Category</h2>
+    <p class="text-light mb-0">{{ category.get_name_display }}</p>
+  </div>
+  <div class="d-flex align-items-center">
+    <a href="{% url 'admin_catalog' %}" class="btn btn-outline-light">Back to Catalog</a>
+  </div>
+</div>
+
+<div class="card shadow-sm border-0">
+  <div class="card-body">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button class="btn btn-primary">Save Changes</button>
+      <a class="btn btn-link" href="{% url 'admin_catalog' %}">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}
+

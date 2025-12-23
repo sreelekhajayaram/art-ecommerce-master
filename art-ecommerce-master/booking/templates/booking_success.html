@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 text-center">
+            <div class="alert alert-success" role="alert">
+                <h4 class="alert-heading">Booking Submitted Successfully!</h4>
+                <p>Your portrait booking has been submitted. We will contact you soon with further details.</p>
+                <hr>
+                <p class="mb-0"><a href="{% url 'home' %}" class="btn btn-primary">Back to Home</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

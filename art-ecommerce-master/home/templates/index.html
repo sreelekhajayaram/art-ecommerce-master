@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section id="about_section" class="about-section overflow-hidden">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h3 class="header-h3 uppercase text-center about-h">About</h3>
+                <div class="row">
+                    <div class="col-md-6 col-sm-10 col-lg-4 offset-xs-1 offset-md-0 about-col fade-in">
+                        <h4 class="header-h4">Artwork</h4>
+                        <p class="p-text">All paintings are painted with acrylic colours. The paintings are categorized in collections.
+                            Each collection has one point of focus which the paintings try to embody. We have for example the cosmic collection
+                            where the paintings have colours usually assosiated with the cosmos, such as blue, pink and purple or are assosiated
+                            with some cosmic attribute such as the sodiac. The collections in general focus on the nordic heritage of the artist,
+                            fairytales, human emotions, and supernatural elements of the world. All paintings are influenced by expressionism
+                            or serrialism. The aim of these paintings is not to show the world as it is but to make the observer get 
+                            in touch with something within himself.
+                        </p>
+                    </div>
+                    <div class="col-md-6 col-sm-10 col-lg-4 offset-xs-1 offset-md-0 about-col fade-in">
+                        <h4 class="header-h4">About The Artist</h4>
+                        <p class="p-text">I grew up in Uppsala, Sweden. My interest in painting started at a young age. I sold my first painting
+                            when I was seven. It was a painting of the human soul. From that moment on, I knew I was going to be a painter. 
+                            Later in life I studied art at the Academy of Arts and Crafts in Stockholm. I got my first job as an assisting
+                            creative director in the Stockholm Gallery for modern art where I stayed until I was able to open my own art gallery
+                            in 2014. Today my art gallery is located in the center of Uppsala, Sweden. The gallery is open every day from 12-18 o'clock,
+                            the address is Uppsalagatan, 123.
+                        </p>
+                    </div>
+                    <div class="col-md-6 col-sm-10 col-lg-4 offset-xs-1 offset-md-0 about-col fade-in">
+                        <h4 class="header-h4">Site Info</h4>
+                        <p class="p-text">This site is an art gallery and webshop. Here you can buy a few originals and prints of all of my paintings.
+                            You can also stay up to date with some of my projects, current art exhibitions, and what's going on in the gallery.
+                        </p>
+                        <p class="p-text"><span class="font-weight-bold">Note:</span> This site is for educational purposes, and the e-commerce part is not in use.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="news-section overflow-hidden">
+    <div class="container">
+        <div class="row">
+            <div class="col text-center">
+                <a href="{% url 'get_newsposts' %}#news-sect"><h3 class="header-h3 uppercase index-news-h">News</h3></a>
+                <p class="p-text">Read the latest new about upcoming exhibitions, recent paintings, or general thoughts of mine!
+                </p>
+            </div>
+        </div>
+        {% for post in posts|slice:":3" %}
+        <div class="row">
+            <div class="col-10 offset-1 newspost-container">
+                <a href="{% url 'news_detail' post.id %}#content"><h4 class="article-h">{{ post.title }}</h4></a>
+                {% if post.image %}
+                    <img class="newspost-image" src="{{ MEDIA_URL }}{{ post.image }}" alt="image">
+                {% endif %}
+                <p class="p-text prev-blog-text">{{ post.content|truncatewords:50 }}</p>
+                <span class="btn btn-success openpost-btn">
+                    <a href="{% url 'news_detail' post.id %}#content">Read Article</a>
+                </span>
+            </div>
+        </div>
+    
+        <br>
+        {% endfor %}
+        <div class="row justify-content-center">
+            <a class="btn btn-outline-info btn-lg m-auto" href="{% url 'get_newsposts' %}#news-sect">See all the news!</a>
+        </div>
+    </div>
+</section>
+
+<section class="paintings-section overflow-hidden">
+    <div class="container">
+        <div class="row">
+            <div class="col text-center">
+                <h3 class="header-h3 uppercase index-news-h">Paintings</h3>
+                <p class="p-text">View some of my most recent paintings!</p>
+            </div>
+        </div>
+    </div>
+
+    {% for product in products|slice:":3" %}
+    {% if forloop.counter|divisibleby:2 %}
+
+    <div class="row product-display-row">
+        <div class="col-12 col-md-3 d-block d-md-none from-left slide-in">
+            <a data-fancybox="gallery" href="{{ MEDIA_URL }}{{ product.image }}">
+                <img class="product-img img-shadow" src="{{ MEDIA_URL }}{{ product.image }}" alt="image">
+            </a>
+        </div>
+
+        <div class="col-12 col-md-7 shadow-left from-left slide-in">
+            <a href="{% url 'get_single_product' product.id %}#content">
+                <h4 class="header-h4 product-h">{{ product.name }}</h4>
+                <p class="p-text">{{ product.description|truncatewords:50 }}</p>
+            </a>
+            <div class="product-info">
+                {% if product.printpainting_set.all %}
+                    <span class="p-text font-italic">Availible as: </span>
+                    <span class="p-text font-weight-bold">Print</span>
+                {% else %}
+                    <p class="p-text font-weight-bold font-italic">Prints are out of stock!</p>
+                {% endif %}
+
+                {% if product.original_painting.stock == True %}
+                    <p class="p-text font-weight-bold">Original painting still availible!</p>
+                {% else %}
+                <p class="p-text font-weight-bold">Original painting has been sold!</p>
+                {% endif %}
+                <!-- <p>Price varies between print sizes and original painting</p> -->
+                <span class="btn btn-success openproduct-btn"><a href="{% url 'get_single_product' product.id %}#content">View Product</a></span>
+            </div>
+        </div>
+        <div class="col-3 d-none d-md-block from-right slide-in">
+            <a data-fancybox="gallery" href="{{ MEDIA_URL }}{{ product.image }}">
+                <img class="product-img img-shadow" src="{{ MEDIA_URL }}{{ product.image }}" alt="image">
+            </a>
+        </div>
+    </div>
+    {% else %}
+
+    <div class="row product-display-row">
+        <div class="col-12 col-md-3 from-left slide-in">
+            <a data-fancybox="gallery" href="{{ MEDIA_URL }}{{ product.image }}">
+                <img class="product-img img-shadow" src="{{ MEDIA_URL }}{{ product.image }}" alt="image">
+            </a>
+        </div>
+        <div class="col-md-7 shadow-right from-right slide-in">
+            <a href="{% url 'get_single_product' product.id %}#content">
+                <h4 class="header-h4 product-h">{{ product.name }}</h4>
+                <p class="p-text">{{ product.description|truncatewords:50 }}</p>
+            </a>
+            <div class="product-info">
+                {% if product.printpainting_set.all %}
+                    <span class="p-text font-italic">Availible as: </span>
+                    <span class="p-text font-weight-bold">Print</span>
+                {% else %}
+                    <p class="p-text font-weight-bold font-italic">Prints are out of stock!</p>
+                {% endif %}
+
+                {% if product.original_painting.stock == True %}
+                    <p class="p-text font-weight-bold">Original painting still availible!</p>
+                {% else %}
+                    <p class="p-text font-weight-bold">Original painting has been sold!</p>
+                {% endif %}
+                <!-- <p>Price varies between print sizes and original painting</p> -->
+                <span class="btn btn-success openproduct-btn"><a href="{% url 'get_single_product' product.id %}#content">View Product</a></span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endfor %}
+<br>
+    <div class="text-center">
+        <a class="btn btn-outline-info btn-lg m-auto" href="{% url 'get_products' %}#painting-sect">View all paintings!</a>
+    </div>
+<br>
+</section>
+
+{% endblock %}
