@@ -107,6 +107,11 @@ def payment_portal(request):
     if not items.exists():
         messages.warning(request, "Your cart is empty.")
         return redirect('home')
+    # Check stock availability
+    for item in items:
+        if item.product.stock < item.quantity:
+            messages.error(request, f"Insufficient stock for {item.product.title}. Available: {item.product.stock}.")
+            return redirect('cart')
     subtotal = sum(item.line_total for item in items)
     checkout_data = request.session.get('checkout_data')
     if not checkout_data:

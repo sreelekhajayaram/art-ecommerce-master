@@ -3,7 +3,7 @@
 <div class="admin-hero mb-4">
   <div>
     <p class="eyebrow">Admin / Dashboard</p>
-    <h1 class="text-white mb-1">Royal Atelier Control Room</h1>
+    <h1 class="text-white mb-1">Art of_Sree Control Room</h1>
     <p class="text-light mb-0">Curate users, catalog, and orders with a refined palette.</p>
   </div>
   <div class="d-flex align-items-center">
@@ -12,30 +12,34 @@
   </div>
 </div>
 
-<div class="row">
-  <div class="col-md-3 mb-3">
-    <div class="glass-card text-center">
-      <p class="eyebrow text-uppercase">Products</p>
-      <div class="display-4 text-white">{{ stats.products }}</div>
+<div class="stats-grid">
+  <div class="stat-card products">
+    <div class="stat-icon">
+      <i class="fas fa-box"></i>
     </div>
+    <div class="stat-number">{{ stats.products }}</div>
+    <div class="stat-label">Products</div>
   </div>
-  <div class="col-md-3 mb-3">
-    <div class="glass-card text-center">
-      <p class="eyebrow text-uppercase">Orders</p>
-      <div class="display-4 text-white">{{ stats.orders }}</div>
+  <div class="stat-card orders">
+    <div class="stat-icon">
+      <i class="fas fa-shopping-cart"></i>
     </div>
+    <div class="stat-number">{{ stats.orders }}</div>
+    <div class="stat-label">Orders</div>
   </div>
-  <div class="col-md-3 mb-3">
-    <div class="glass-card text-center">
-      <p class="eyebrow text-uppercase">Bookings</p>
-      <div class="display-4 text-white">{{ stats.bookings }}</div>
+  <div class="stat-card bookings">
+    <div class="stat-icon">
+      <i class="fas fa-calendar-check"></i>
     </div>
+    <div class="stat-number">{{ stats.bookings }}</div>
+    <div class="stat-label">Bookings</div>
   </div>
-  <div class="col-md-3 mb-3">
-    <div class="glass-card text-center">
-      <p class="eyebrow text-uppercase">Users</p>
-      <div class="display-4 text-white">{{ stats.users }}</div>
+  <div class="stat-card users">
+    <div class="stat-icon">
+      <i class="fas fa-users"></i>
     </div>
+    <div class="stat-number">{{ stats.users }}</div>
+    <div class="stat-label">Users</div>
   </div>
 </div>
 
@@ -45,7 +49,14 @@
     <a href="{% url 'export_orders_csv' %}" class="btn btn-outline-primary btn-sm mr-2">Orders CSV</a>
     <a href="{% url 'export_bookings_csv' %}" class="btn btn-outline-primary btn-sm mr-2">Bookings CSV</a>
     <a href="{% url 'export_users_csv' %}" class="btn btn-outline-primary btn-sm mr-2">Users CSV</a>
-    <a href="{% url 'export_users_pdf' %}" class="btn btn-outline-primary btn-sm">Users PDF</a>
+    <a href="{% url 'export_users_pdf' %}" class="btn btn-outline-primary btn-sm mr-2">Users PDF</a>
+    <div class="ml-auto">
+      <form method="post" class="form-inline">
+        {% csrf_token %}
+        <input type="text" name="category_name" class="form-control form-control-sm mr-2" placeholder="New Category Name" required>
+        <button type="submit" name="quick_add_category" class="btn btn-gold btn-sm">Add Category</button>
+      </form>
+    </div>
   </div>
 </div>
 
@@ -95,6 +106,8 @@
         </ul>
       </div>
     </div>
+  </div>
+</div>
   </div>
 </div>
 {% endblock %}
