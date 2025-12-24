@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     'home',
     'shop',
     'booking',
+    'feedback.apps.FeedbackConfig',
     'adminpanel',
     'newsposts',
     'products',

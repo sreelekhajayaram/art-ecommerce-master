@@ -1,0 +1,528 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .feedback-container {
+        max-width: 1000px;
+        margin: 2rem auto;
+        padding: 0 15px;
+    }
+
+    .feedback-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 2rem 0;
+    }
+
+    .feedback-title {
+        font-family: 'Great Vibes', 'Satisfy', cursive;
+        font-size: 3.5rem;
+        font-weight: 400;
+        color: #000;
+        margin-bottom: 0.5rem;
+        letter-spacing: 1px;
+        font-style: italic;
+    }
+
+    .feedback-subtitle {
+        font-size: 1.1rem;
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
+    .rating-stats {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        align-items: center;
+        margin-top: 1.5rem;
+    }
+
+    .stat-box {
+        text-align: center;
+        padding: 1rem;
+        background: #f8f8f8;
+        border-radius: 10px;
+        min-width: 150px;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #000;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: #666;
+        margin-top: 0.5rem;
+    }
+
+    /* Feedbacks Display Section */
+    .feedbacks-section {
+        margin-bottom: 4rem;
+    }
+
+    .feedbacks-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #000;
+        margin-bottom: 2rem;
+        text-align: center;
+        padding-bottom: 1rem;
+        border-bottom: 3px solid #000;
+    }
+
+    .feedbacks-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .feedback-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        border-top: 4px solid #000;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .feedback-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    .feedback-header-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 1rem;
+    }
+
+    .feedback-name {
+        font-weight: 600;
+        color: #000;
+        font-size: 1.1rem;
+    }
+
+    .feedback-rating {
+        font-size: 1.1rem;
+        color: #ffc107;
+        letter-spacing: 2px;
+    }
+
+    .feedback-date {
+        font-size: 0.85rem;
+        color: #999;
+        margin-bottom: 1rem;
+    }
+
+    .feedback-comment {
+        color: #333;
+        line-height: 1.6;
+        flex-grow: 1;
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
+    }
+
+    .feedback-email {
+        font-size: 0.85rem;
+        color: #666;
+        word-break: break-all;
+    }
+
+    .no-feedbacks {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #999;
+    }
+
+    /* Add Feedback Form Section */
+    .add-feedback-section {
+        background: #f8f8f8;
+        padding: 3rem;
+        border-radius: 12px;
+        margin-bottom: 3rem;
+    }
+
+    .add-feedback-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #000;
+        margin-bottom: 0.5rem;
+    }
+
+    .add-feedback-subtitle {
+        color: #666;
+        margin-bottom: 2rem;
+    }
+
+    .feedback-form {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #000;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        font-family: inherit;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #000;
+        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .form-control[readonly] {
+        background-color: #f0f0f0;
+        cursor: not-allowed;
+        border-color: #d0d0d0;
+        color: #666;
+    }
+
+    .form-control[readonly]:focus {
+        border-color: #d0d0d0;
+        box-shadow: none;
+    }
+
+    .your-feedback-card {
+        background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%);
+        border-left: 4px solid #ffc107;
+        position: relative;
+    }
+
+    .delete-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: all 0.2s ease;
+        padding: 0;
+    }
+
+    .delete-btn:hover {
+        background: #c82333;
+        transform: scale(1.1);
+    }
+
+    .rating-group {
+        display: flex;
+        gap: 0.35rem;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    .rating-input {
+        display: none;
+    }
+
+    .rating-label {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border: 2px solid #ddd;
+        border-radius: 50%;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: white;
+        color: #ddd;
+    }
+
+    .rating-label:hover {
+        transform: scale(1.15);
+        border-color: #ffc107;
+        background: #fffbf0;
+        color: #ffc107;
+    }
+
+    .rating-input:checked + .rating-label {
+        border-color: #ffc107;
+        background: #ffc107;
+        color: white;
+        font-weight: 700;
+        transform: scale(1.2);
+    }
+
+    .form-submit {
+        width: 100%;
+        padding: 1rem;
+        background: #000;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .form-submit:hover {
+        background: #222;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .login-prompt {
+        background: #fff3cd;
+        border: 2px solid #ffc107;
+        border-radius: 8px;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .login-prompt p {
+        color: #333;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+    }
+
+    .login-btn {
+        display: inline-block;
+        padding: 0.75rem 2rem;
+        background: #000;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .login-btn:hover {
+        background: #222;
+        text-decoration: none;
+    }
+
+    .alert {
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border-radius: 6px;
+    }
+
+    .alert-success {
+        background: #d4edda;
+        border: 2px solid #28a745;
+        color: #155724;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .feedback-title {
+            font-size: 2.2rem;
+        }
+
+        .feedbacks-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .rating-stats {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .rating-group {
+            justify-content: space-between;
+        }
+
+        .rating-label {
+            width: 50px;
+            height: 50px;
+            font-size: 1rem;
+        }
+    }
+</style>
+
+<div class="feedback-container">
+    <!-- Header -->
+    <div class="feedback-header">
+        <h1 class="feedback-title">Customer Stories</h1>
+        <p class="feedback-subtitle">Hear from people who've experienced our art commissions</p>
+        
+        {% if total_feedbacks > 0 %}
+        <div class="rating-stats">
+            <div class="stat-box">
+                <div class="stat-number">{{ total_feedbacks }}</div>
+                <div class="stat-label">Total Reviews</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ avg_rating }}</div>
+                <div class="stat-label">Average Rating</div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Your Recent Feedback Section (for authenticated users) -->
+    {% if user.is_authenticated and user_feedbacks %}
+        <section class="feedbacks-section">
+            <h2 class="feedbacks-title">📝 Your Feedback</h2>
+            <div class="feedbacks-grid">
+                {% for feedback in user_feedbacks %}
+                    <div class="feedback-card your-feedback-card">
+                        <button class="delete-btn" onclick="if(confirm('Are you sure you want to delete this feedback?')) { window.location.href='{% url 'feedback:delete_feedback' feedback.id %}'; }" title="Delete this feedback">✕</button>
+                        <div class="feedback-header-inner">
+                            <div>
+                                <div class="feedback-name">{{ feedback.name }}</div>
+                                <div class="feedback-date">{{ feedback.created_at|date:"M d, Y" }}</div>
+                            </div>
+                            <div class="feedback-rating">
+                                {% for i in "12345" %}
+                                    {% if i|add:"0" <= feedback.rating %}⭐{% else %}☆{% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <p class="feedback-comment">{{ feedback.comment }}</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            {% if feedback.email %}
+                                <small class="feedback-email">{{ feedback.email }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    <!-- Feedbacks Display -->
+    <section class="feedbacks-section">
+        <h2 class="feedbacks-title">✨ What Our Customers Say</h2>
+        
+        {% if feedbacks %}
+            <div class="feedbacks-grid">
+                {% for feedback in feedbacks %}
+                    <div class="feedback-card">
+                        <div class="feedback-header-inner">
+                            <div>
+                                <div class="feedback-name">{{ feedback.name }}</div>
+                                <div class="feedback-date">{{ feedback.created_at|date:"M d, Y" }}</div>
+                            </div>
+                            <div class="feedback-rating">
+                                {% for i in "12345" %}
+                                    {% if i|add:"0" <= feedback.rating %}⭐{% else %}☆{% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <p class="feedback-comment">{{ feedback.comment }}</p>
+                        {% if feedback.email %}
+                            <small class="feedback-email">{{ feedback.email }}</small>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-feedbacks">
+                <p>No reviews yet. Be the first to share your experience!</p>
+            </div>
+        {% endif %}
+    </section>
+
+    <!-- Add Feedback Section -->
+    <section class="add-feedback-section">
+        <h2 class="add-feedback-title">Share Your Experience</h2>
+        <p class="add-feedback-subtitle">Help us improve by sharing your feedback</p>
+
+        {% if user.is_authenticated %}
+            <form method="post" class="feedback-form" novalidate>
+                {% csrf_token %}
+                
+                <!-- Name -->
+                <div class="form-group">
+                    <label class="form-label">{{ form.name.label }}</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <small style="color: #e74c3c;">{{ form.name.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    <label class="form-label">{{ form.email.label }}</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <small style="color: #e74c3c;">{{ form.email.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <!-- Rating -->
+                <div class="form-group">
+                    <label class="form-label">{{ form.rating.label }}</label>
+                    <div class="rating-group">
+                        {% for value, label in form.rating.field.choices %}
+                            <input type="radio" name="rating" value="{{ value }}" id="rating_{{ value }}" class="rating-input" {% if form.rating.value == value|stringformat:"s" %}checked{% endif %}>
+                            <label for="rating_{{ value }}" class="rating-label" title="{{ label }}">
+                                {% for i in "12345" %}
+                                    {% if i|add:"0" <= value %}⭐{% else %}☆{% endif %}
+                                {% endfor %}
+                            </label>
+                        {% endfor %}
+                    </div>
+                    {% if form.rating.errors %}
+                        <small style="color: #e74c3c;">{{ form.rating.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <!-- Comment -->
+                <div class="form-group">
+                    <label class="form-label">{{ form.comment.label }}</label>
+                    {{ form.comment }}
+                    {% if form.comment.errors %}
+                        <small style="color: #e74c3c;">{{ form.comment.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" class="form-submit">Submit Your Feedback</button>
+            </form>
+        {% else %}
+            <div class="login-prompt">
+                <p>Please log in to share your feedback</p>
+                <a href="{% url 'login' %}" class="login-btn">Log In</a>
+            </div>
+        {% endif %}
+    </section>
+</div>
+
+{% endblock %}

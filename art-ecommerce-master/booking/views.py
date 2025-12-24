@@ -3,17 +3,15 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
+import json
 
-from .forms import PortraitBookingForm
+from .forms import PortraitBookingForm, STATE_CITY_MAP, SIZE_DESCRIPTIONS
 from .models import PortraitBooking, Size
 
 
 @login_required
 def booking_form(request):
-    initial = {
-        'name': request.user.get_full_name() or request.user.username,
-        'email': request.user.email,
-    }
+    # No initial values - username must be entered manually
     if request.method == 'POST':
         form = PortraitBookingForm(request.POST, request.FILES)
         if form.is_valid():
@@ -25,8 +23,14 @@ def booking_form(request):
             request.session['booking_pending'] = booking.id
             return redirect('payment_portal')
     else:
-        form = PortraitBookingForm(initial=initial)
-    return render(request, 'booking.html', {'form': form})
+        form = PortraitBookingForm()
+    
+    context = {
+        'form': form,
+        'state_city_map': json.dumps(STATE_CITY_MAP),
+        'size_descriptions': json.dumps(SIZE_DESCRIPTIONS)
+    }
+    return render(request, 'booking.html', context)
 
 
 @login_required
@@ -50,7 +54,11 @@ def portrait_booking(request):
     else:
         form = PortraitBookingForm()
 
-    context = {'form': form}
+    context = {
+        'form': form,
+        'state_city_map': json.dumps(STATE_CITY_MAP),
+        'size_descriptions': json.dumps(SIZE_DESCRIPTIONS)
+    }
     return render(request, 'booking_form.html', context)
 
 
@@ -77,4 +85,12 @@ def size_reference_images(request):
         'image_url': size.reference_image.url if size.reference_image else ''
     } for size in sizes]
     return JsonResponse({'sizes': data})
+
+
+@require_http_methods(["GET"])
+def get_cities_by_state(request):
+    """API endpoint to get cities for a selected state"""
+    state = request.GET.get('state', '')
+    cities = STATE_CITY_MAP.get(state, [])
+    return JsonResponse({'cities': cities})
 
