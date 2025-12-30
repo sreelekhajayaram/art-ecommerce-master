@@ -8,23 +8,5 @@ urlpatterns = [
     path('api/size-references/', views.size_reference_images, name='size_references'),
     path('api/get-cities/', views.get_cities_by_state, name='get_cities'),
     path('portrait/', views.portrait_booking, name='portrait_booking'),
+    path('payment/', views.portrait_payment, name='portrait_payment'),
 ]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

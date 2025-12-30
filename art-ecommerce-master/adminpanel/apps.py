@@ -23,3 +23,5 @@ class AdminpanelConfig(AppConfig):
 
 
 
+
+

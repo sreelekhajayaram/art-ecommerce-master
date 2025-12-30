@@ -14,7 +14,6 @@ urlpatterns = [
     path('catalog/product/<int:pk>/edit/', views.edit_product, name='edit_product'),
     path('catalog/product/<int:pk>/delete/', views.delete_product, name='delete_product'),
     path('catalog/product-image/<int:pk>/delete/', views.delete_product_image, name='delete_product_image'),
+    path('portrait-orders/', views.portrait_orders, name='portrait_orders'),
+    path('portrait-orders/<int:booking_id>/download-image/', views.download_reference_image, name='download_reference_image'),
 ]
-
-
-

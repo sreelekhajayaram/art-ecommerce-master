@@ -2,8 +2,8 @@
 {% block content %}
 <div class="admin-hero mb-4">
   <div>
-    <p class="eyebrow">Admin / Dashboard</p>
-    <h1 class="text-white mb-1">Royal Atelier Control Room</h1>
+    <p class="eyebrow">Admin Dashboard</p>
+    <h1 class="text-white mb-1">Art_ofsree Control Room</h1>
     <p class="text-light mb-0">Curate users, catalog, and orders with a refined palette.</p>
   </div>
   <div class="d-flex align-items-center">
@@ -64,7 +64,7 @@
                 <span class="badge badge-dark mr-2">#{{ order.id }}</span>
                 <strong>{{ order.user.email }}</strong>
               </div>
-              <span class="text-muted">${{ order.total_price }}</span>
+              <span class="text-muted">₹{{ order.total_price }}</span>
             </li>
           {% empty %}
             <li class="list-group-item text-center text-muted">No orders yet.</li>

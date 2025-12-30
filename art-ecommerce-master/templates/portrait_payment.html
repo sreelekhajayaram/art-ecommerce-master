@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+  <div class="col-lg-6 mb-3">
+    <div class="payment-card p-4">
+      <p class="eyebrow text-light">Secure Checkout</p>
+      <h3 class="mb-3">Amount Payable: ₹ {{ subtotal }}</h3>
+      <form id="paymentForm" method="post" novalidate>
+        {% csrf_token %}
+        <div class="form-group">
+          <label>Cardholder Name</label>
+          <input type="text" class="form-control" id="cardName" name="card_name" placeholder="As on card" required>
+          <div class="invalid-feedback">Enter the name on card</div>
+        </div>
+        <div class="form-group">
+          <label>Card Number</label>
+          <input type="text" class="form-control" id="cardNumber" name="card_number" maxlength="19" placeholder="XXXX XXXX XXXX XXXX" required>
+          <div class="invalid-feedback">Enter a valid 16-digit card number</div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label>Expiry (MM/YY)</label>
+            <input type="text" class="form-control" id="cardExpiry" name="card_expiry" placeholder="08/28" maxlength="5" required>
+            <div class="invalid-feedback">Enter a valid expiry</div>
+          </div>
+          <div class="form-group col-md-6">
+            <label>CVV</label>
+            <input type="password" class="form-control" id="cardCvv" name="card_cvv" maxlength="3" placeholder="123" required>
+            <div class="invalid-feedback">3-digit CVV required</div>
+          </div>
+        </div>
+        <div class="form-group form-check">
+          <input type="checkbox" class="form-check-input" id="codOption" name="cod_option">
+          <label class="form-check-label" for="codOption">Cash on Delivery (skip card)</label>
+        </div>
+        <div class="d-flex">
+          <button type="submit" class="btn btn-gold mr-2" id="payNow">Pay Now</button>
+          <a class="btn btn-outline-light" href="{% url 'booking' %}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white">
+        <strong>Portrait Booking Summary</strong>
+      </div>
+      <div class="card-body">
+        <p class="mb-1"><strong>{{ booking.name }}</strong></p>
+        <p class="mb-1">Email: {{ booking.email }}</p>
+        <p class="mb-1">Phone: {{ booking.phone }}</p>
+        <p class="mb-1">Artwork Size: {{ booking.get_size_display }}</p>
+        <p class="mb-1">Category: {{ booking.get_category_display }}</p>
+        {% if booking.reference_image %}
+          <p class="mb-1">Reference Image: <a href="{{ booking.reference_image.url }}" target="_blank">View Image</a></p>
+        {% endif %}
+        <p class="mb-1">{{ booking.description }}</p>
+        <hr>
+        <div class="d-flex justify-content-between">
+          <strong>Total Amount</strong>
+          <strong>₹ {{ subtotal }}</strong>
+        </div>
+        <p class="text-muted small mb-0">This is a dummy payment page; no real charges will be made.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  const numberInput = document.getElementById('cardNumber');
+  const expiryInput = document.getElementById('cardExpiry');
+  const cvvInput = document.getElementById('cardCvv');
+  const nameInput = document.getElementById('cardName');
+  const codInput = document.getElementById('codOption');
+  const payNow = document.getElementById('payNow');
+
+  function formatNumber(val) {
+    return val.replace(/\D/g, '').slice(0,16).replace(/(.{4})/g, '$1 ').trim();
+  }
+
+  function validate() {
+    let ok = true;
+    if (!codInput.checked) {
+      if (!nameInput.value.trim()) { nameInput.classList.add('is-invalid'); ok = false; } else { nameInput.classList.remove('is-invalid'); }
+      const digits = numberInput.value.replace(/\s/g, '');
+      if (digits.length !== 16) { numberInput.classList.add('is-invalid'); ok = false; } else { numberInput.classList.remove('is-invalid'); }
+      const exp = expiryInput.value.trim();
+      const expMatch = exp.match(/^(0[1-9]|1[0-2])\/\d{2}$/);
+      if (!expMatch) { expiryInput.classList.add('is-invalid'); ok = false; } else { expiryInput.classList.remove('is-invalid'); }
+      if (cvvInput.value.trim().length !== 3) { cvvInput.classList.add('is-invalid'); ok = false; } else { cvvInput.classList.remove('is-invalid'); }
+    } else {
+      [nameInput, numberInput, expiryInput, cvvInput].forEach(el => el.classList.remove('is-invalid'));
+    }
+    return ok;
+  }
+
+  numberInput.addEventListener('input', e => numberInput.value = formatNumber(numberInput.value));
+  expiryInput.addEventListener('input', e => {
+    let v = expiryInput.value.replace(/\D/g, '').slice(0,4);
+    if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
+    expiryInput.value = v;
+  });
+  cvvInput.addEventListener('input', e => cvvInput.value = cvvInput.value.replace(/\D/g,'').slice(0,3));
+
+  payNow.addEventListener('click', (e) => {
+    if (!validate()) {
+      e.preventDefault();
+      return;
+    }
+    // Form will submit normally
+  });
+})();
+</script>
+{% endblock %}

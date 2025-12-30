@@ -13,6 +13,8 @@ class Category(models.Model):
         ('caricature', 'Caricatures'),
         ('stencil', 'Stencil Artworks'),
         ('mural', 'Kerala Mural'),
+        ('pen_art', 'Pen Art'),
+        ('ghibli_art', 'Ghibli Art'),
     ]
 
     name = models.CharField(max_length=100, choices=CATEGORY_CHOICES, unique=True)

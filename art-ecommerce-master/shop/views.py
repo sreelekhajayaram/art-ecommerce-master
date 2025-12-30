@@ -1,18 +1,39 @@
 from decimal import Decimal
-
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.http import JsonResponse
+import json
 
 from .forms import CheckoutForm
 from .models import CartItem, Category, Order, OrderItem, Product
+from booking.forms import STATE_CITY_MAP
 
 
 def home(request):
-    products = Product.objects.order_by('-created_at')[:6]
     categories = Category.objects.all()
+
+    # Handle search and category filtering
+    category_slug = request.GET.get('category')
+    search_query = request.GET.get('search')
+
+    # Start with base queryset
+    products = Product.objects.order_by('-created_at')
+
+    if category_slug:
+        try:
+            category = Category.objects.get(slug=category_slug)
+            products = products.filter(category=category)
+        except Category.DoesNotExist:
+            products = Product.objects.none()
+
+    if search_query:
+        products = products.filter(title__icontains=search_query) | products.filter(description__icontains=search_query)
+
+    # Apply slice after filtering
+    products = products[:6]
+
     return render(request, 'home.html', {'products': products, 'categories': categories})
 
 
@@ -80,15 +101,21 @@ def checkout(request):
         'email': request.user.email,
     }
     if request.method == 'POST':
-        form = CheckoutForm(request.POST)
+        form = CheckoutForm(request.POST, user=request.user)
         if form.is_valid():
             request.session['checkout_data'] = form.cleaned_data
             request.session['checkout_total'] = str(subtotal)
             return redirect('payment_portal')
     else:
-        form = CheckoutForm(initial=initial)
+        form = CheckoutForm(initial=initial, user=request.user)
 
-    return render(request, 'checkout.html', {'items': items, 'subtotal': subtotal, 'form': form})
+    context = {
+        'form': form,
+        'items': items,
+        'subtotal': subtotal,
+        'state_city_map': json.dumps(STATE_CITY_MAP)
+    }
+    return render(request, 'checkout.html', context)
 
 
 @login_required
@@ -223,4 +250,3 @@ def place_order_cod(request):
     request.session.pop('checkout_total', None)
     messages.success(request, "Order placed. Please pay on delivery.")
     return JsonResponse({'redirect_url': reverse('user_dashboard')})
-

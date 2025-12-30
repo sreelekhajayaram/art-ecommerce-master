@@ -121,6 +121,17 @@ def catalog(request):
 
     categories = Category.objects.prefetch_related('products').all().order_by('name')
     products = Product.objects.select_related('category').order_by('-created_at')
+
+    # Handle search filters
+    category_search = request.GET.get('category_search', '').strip()
+    product_search = request.GET.get('product_search', '').strip()
+
+    if category_search:
+        categories = categories.filter(name__icontains=category_search) | categories.filter(description__icontains=category_search)
+
+    if product_search:
+        products = products.filter(title__icontains=product_search) | products.filter(description__icontains=product_search)
+
     return render(request, 'adminpanel/catalog.html', {
         'categories': categories,
         'products': products,
@@ -154,14 +165,20 @@ def delete_category(request, pk):
 def edit_product(request, pk):
     product = get_object_or_404(Product, pk=pk)
     form = ProductForm(request.POST or None, request.FILES or None, instance=product)
-    if request.method == "POST" and form.is_valid():
-        prod = form.save()
-        # handle new uploaded images
-        images = request.FILES.getlist('images')
-        for img in images:
-            ProductImage.objects.create(product=prod, image=img)
-        messages.success(request, "Product updated.")
-        return redirect('admin_catalog')
+    if request.method == "POST":
+        if form.is_valid():
+            try:
+                prod = form.save()
+                # handle new uploaded images
+                images = request.FILES.getlist('images')
+                for img in images:
+                    ProductImage.objects.create(product=prod, image=img)
+                messages.success(request, "Product updated.")
+                return redirect('admin_catalog')
+            except Exception as e:
+                messages.error(request, f"Error saving product: {str(e)}")
+        else:
+            messages.error(request, "Please correct the errors below.")
     return render(request, 'adminpanel/edit_product.html', {'form': form, 'product': product})
 
 
@@ -184,6 +201,49 @@ def delete_product(request, pk):
         messages.success(request, "Product deleted.")
         return redirect('admin_catalog')
     return render(request, 'adminpanel/confirm_delete.html', {'object': product, 'type': 'Product'})
+
+
+@staff_member_required
+def portrait_orders(request):
+    """View for managing portrait booking orders"""
+    query = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', '').strip()
+
+    bookings = PortraitBooking.objects.select_related('user').order_by('-created_at')
+
+    if query:
+        bookings = bookings.filter(
+            name__icontains=query
+        ) | bookings.filter(
+            email__icontains=query
+        ) | bookings.filter(
+            order_id__icontains=query
+        )
+
+    if status_filter:
+        bookings = bookings.filter(booking_status=status_filter)
+
+    return render(request, 'adminpanel/portrait_orders.html', {
+        'bookings': bookings,
+        'query': query,
+        'status_filter': status_filter,
+    })
+
+
+@staff_member_required
+def download_reference_image(request, booking_id):
+    """Download reference image for a portrait booking"""
+    booking = get_object_or_404(PortraitBooking, id=booking_id)
+    if not booking.reference_image:
+        messages.error(request, "No reference image found for this booking.")
+        return redirect('portrait_orders')
+
+    # Get the file
+    file_path = booking.reference_image.path
+    with open(file_path, 'rb') as f:
+        response = HttpResponse(f.read(), content_type='application/octet-stream')
+        response['Content-Disposition'] = f'attachment; filename="{booking.reference_image.name.split("/")[-1]}"'
+        return response
 
 
 

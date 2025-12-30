@@ -22,13 +22,17 @@ class PortraitBooking(models.Model):
         ('pencil', 'Pencil Drawings'),
         ('caricature', 'Caricatures'),
         ('stencil', 'Stencil Artworks'),
+        ('mural', 'Kerala Mural'),
+        ('pen_art', 'Pen Art'),
+        ('ghibli_art', 'Ghibli Art'),
     ]
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='paintings')
-    reference_image = models.ImageField(upload_to='bookings/')
+    reference_image = models.ImageField(upload_to='bookings/', blank=True, null=True)
     description = models.TextField(blank=True)
     size = models.CharField(max_length=50)
     preferred_date = models.DateField(blank=True, null=True)  # Optional - removed from form
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0, editable=False)
     BOOKING_STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('confirmed', 'Confirmed'),
@@ -53,5 +57,7 @@ class Size(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.dimensions})"
+
+
 
 

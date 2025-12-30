@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load widget_tweaks %}
 
 {% block content %}
 <div class="booking-container">
@@ -8,7 +9,7 @@
         <p class="booking-subtitle">Tell us about your vision and let's create something beautiful together</p>
     </div>
 
-    <form method="post" enctype="multipart/form-data" class="booking-form" novalidate>
+    <form method="post" enctype="multipart/form-data" action="{% url 'portrait_booking' %}" class="booking-form" novalidate>
         {% csrf_token %}
         
         <!-- Error Messages -->
@@ -36,9 +37,23 @@
                             {{ form.name.label }}
                             <span class="required-badge">*</span>
                         </label>
-                        {{ form.name }}
+                        {{ form.name|add_class:"form-control form-control-lg" }}
                         {% if form.name.errors %}
                             <div class="invalid-feedback d-block">{{ form.name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Username -->
+                <div class="col-md-6 mb-4">
+                    <div class="form-group">
+                        <label for="id_username" class="form-label">
+                            {{ form.username.label }}
+                            <span class="required-badge">*</span>
+                        </label>
+                        {{ form.username|add_class:"form-control form-control-lg" }}
+                        {% if form.username.errors %}
+                            <div class="invalid-feedback d-block">{{ form.username.errors.0 }}</div>
                         {% endif %}
                     </div>
                 </div>
@@ -178,6 +193,22 @@
                         {% if form.size.errors %}
                             <div class="invalid-feedback d-block">{{ form.size.errors.0 }}</div>
                         {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Total Price (Read-only) -->
+                <div class="col-md-6 mb-4">
+                    <div class="form-group">
+                        <label for="id_total_price" class="form-label">
+                            {{ form.total_price.label }}
+                        </label>
+                        {{ form.total_price }}
+                        {% if form.total_price.errors %}
+                            <div class="invalid-feedback d-block">{{ form.total_price.errors.0 }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">Calculated based on size and category selection</small>
                     </div>
                 </div>
             </div>
@@ -493,37 +524,79 @@ document.addEventListener('DOMContentLoaded', function() {
     if (sizeSelect) {
         sizeSelect.addEventListener('change', function() {
             const selectedSize = this.value;
-            
+
             if (selectedSize && sizeDescriptions[selectedSize]) {
                 const sizeData = sizeDescriptions[selectedSize];
-                document.querySelector('.size-info-title').innerHTML = 
+                document.querySelector('.size-info-title').innerHTML =
                     '📐 ' + sizeData.title;
-                document.querySelector('.size-info-desc').innerHTML = 
+                document.querySelector('.size-info-desc').innerHTML =
                     '📝 ' + sizeData.description;
-                document.querySelector('.size-info-ideal').innerHTML = 
+                document.querySelector('.size-info-ideal').innerHTML =
                     '✔ ' + sizeData.ideal;
                 sizeInfo.style.display = 'block';
             } else {
                 sizeInfo.style.display = 'none';
             }
+            calculateTotalPrice();
         });
     }
 
-    // Form Validation
-    const bookingForm = document.querySelector('.booking-form');
-    if (bookingForm) {
-        bookingForm.addEventListener('submit', function(e) {
-            if (!this.checkValidity()) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-            this.classList.add('was-validated');
-        });
+    // Price mappings
+    const sizePrices = {
+        '8x10': 240,
+        '11x14': 270,
+        'A2': 250,
+        'A3': 350,
+        'A4': 300,
+        '16x20': 400,
+    };
+    const categoryPrices = {
+        'pen_art': 200,
+        'pencil': 500,
+        'stencil': 500,
+        'paintings': 500,
+        'ghibli_art': 350,
+        'caricature': 450,
+    };
+
+    // Function to calculate total price
+    function calculateTotalPrice() {
+        const selectedSize = sizeSelect ? sizeSelect.value : '';
+        const selectedCategory = document.getElementById('categorySelect') ? document.getElementById('categorySelect').value : '';
+
+        const sizePrice = sizePrices[selectedSize] || 0;
+        const categoryPrice = categoryPrices[selectedCategory] || 0;
+        const totalPrice = sizePrice + categoryPrice;
+
+        const totalPriceInput = document.getElementById('totalPriceInput');
+        if (totalPriceInput) {
+            totalPriceInput.value = totalPrice > 0 ? totalPrice : '';
+        }
     }
+
+    // Handle Category Selection
+    const categorySelect = document.getElementById('categorySelect');
+    if (categorySelect) {
+        categorySelect.addEventListener('change', calculateTotalPrice);
+    }
+
+    // Form Validation - Removed to allow server-side validation
+    // const bookingForm = document.querySelector('.booking-form');
+    // if (bookingForm) {
+    //     bookingForm.addEventListener('submit', function(e) {
+    //         if (!this.checkValidity()) {
+    //             e.preventDefault();
+    //             e.stopPropagation();
+    //         }
+    //         this.classList.add('was-validated');
+    //     });
+    // }
 });
 </script>
 
 {% endblock %}
+
+
 
 
 

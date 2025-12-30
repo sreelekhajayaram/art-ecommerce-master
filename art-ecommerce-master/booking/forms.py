@@ -1,5 +1,6 @@
 from django import forms
 from .models import PortraitBooking
+from shop.models import Category
 import json
 
 
@@ -137,6 +138,19 @@ class PortraitBookingForm(forms.ModelForm):
             'autocomplete': 'off'
         })
     )
+    total_price = forms.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        required=False,
+        label='Total Price (₹)',
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control form-control-lg',
+            'id': 'totalPriceInput',
+            'readonly': True,
+            'placeholder': 'Calculated automatically'
+        })
+    )
+
 
     class Meta:
         model = PortraitBooking
@@ -150,7 +164,7 @@ class PortraitBookingForm(forms.ModelForm):
             'name': forms.TextInput(attrs={
                 'class': 'form-control form-control-lg',
                 'placeholder': 'Your full name',
-                'autocomplete': 'off'
+                'autocomplete': 'name'
             }),
             'email': forms.EmailInput(attrs={
                 'class': 'form-control form-control-lg',
@@ -170,24 +184,28 @@ class PortraitBookingForm(forms.ModelForm):
             'address': forms.Textarea(attrs={
                 'rows': 2,
                 'class': 'form-control form-control-lg',
-                'placeholder': 'Street address'
+                'placeholder': 'Street address',
+                'autocomplete': 'address-line1'
             }),
             'city': forms.Select(attrs={
                 'class': 'form-control form-control-lg',
-                'id': 'citySelect'
+                'id': 'citySelect',
+                'autocomplete': 'address-level2'
             }),
             'state': forms.Select(
                 choices=INDIAN_STATES,
                 attrs={
                     'class': 'form-control form-control-lg',
-                    'id': 'stateSelect'
+                    'id': 'stateSelect',
+                    'autocomplete': 'address-level1'
                 }
             ),
             'pincode': forms.TextInput(attrs={
                 'class': 'form-control form-control-lg',
                 'placeholder': 'PIN code',
                 'pattern': '[0-9]{6}',
-                'maxlength': '6'
+                'maxlength': '6',
+                'autocomplete': 'postal-code'
             }),
             'reference_image': forms.ClearableFileInput(attrs={
                 'class': 'form-control-file',
@@ -200,26 +218,56 @@ class PortraitBookingForm(forms.ModelForm):
                     'id': 'sizeSelect'
                 }
             ),
-            'category': forms.Select(
-                choices=PortraitBooking.CATEGORY_CHOICES,
-                attrs={
-                    'class': 'form-control form-control-lg',
-                    'id': 'categorySelect'
-                }
-            ),
-            'price': forms.HiddenInput(attrs={'id': 'priceInput'})
+            'price': forms.HiddenInput(attrs={'id': 'priceInput'}),
+            'total_price': forms.NumberInput(attrs={
+                'class': 'form-control form-control-lg',
+                'id': 'totalPriceInput',
+                'readonly': True,
+                'placeholder': 'Calculated automatically'
+            })
         }
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+
         # Update city field to be a select with dynamic options
+        # Include all cities from STATE_CITY_MAP for validation
+        all_cities = [('', 'Select City')]
+        for cities in STATE_CITY_MAP.values():
+            for city in cities:
+                if (city, city) not in all_cities:
+                    all_cities.append((city, city))
+
         self.fields['city'] = forms.ChoiceField(
-            choices=[('', 'Select City')],
+            choices=all_cities,
             widget=forms.Select(attrs={
                 'class': 'form-control form-control-lg',
                 'id': 'citySelect'
-            })
+            }),
+            required=True
         )
+
+        # Configure category field with dynamic choices from Category model
+        category_choices = [(cat.name, cat.get_name_display()) for cat in Category.objects.all()]
+        self.fields['category'] = forms.ChoiceField(
+            choices=[('', 'Select Category')] + category_choices,
+            widget=forms.Select(attrs={
+                'class': 'form-control form-control-lg',
+                'id': 'categorySelect'
+            }),
+            required=True
+        )
+
+        # Make email read-only and populate from user
+        if self.user:
+            self.fields['email'].initial = self.user.email
+            self.fields['email'].widget.attrs['readonly'] = True
+            self.fields['email'].widget.attrs['class'] = 'form-control form-control-lg bg-light'
+
+        # Make reference_image required as per user requirement
+        self.fields['reference_image'].required = True
+
         # Add labels with proper formatting
         self.fields['name'].label = 'Full Name'
         self.fields['email'].label = 'Email Address'
@@ -232,10 +280,13 @@ class PortraitBookingForm(forms.ModelForm):
         self.fields['size'].label = 'Artwork Size'
         self.fields['category'].label = 'Artwork Category'
         self.fields['description'].label = 'Additional Details'
-        
+        self.fields['total_price'].label = 'Total Price (₹)'
+
         # Add help text
         self.fields['pincode'].help_text = '6-digit postal code'
         self.fields['reference_image'].help_text = 'Upload a clear reference image (JPG, PNG)'
+
+
 
 
 
